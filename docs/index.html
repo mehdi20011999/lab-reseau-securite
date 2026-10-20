@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Labo réseau multi-sites</title>
+<meta name="description" content="Deux sites reliés par OSPF et un tunnel IPsec IKEv2, filtrage nftables et NAT, vérifiés par 17 tests automatiques et des captures réseau. Projet de Mehdi Ammou.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EEF1EC; --surface:#F8FAF7; --ink:#1B2430; --muted:#4A5563; --rule:#C9D0C6;
+    --casa:#1D5C96; --rabat:#2E7D4F; --backbone:#8A6A00; --backbone-wire:#D9A400; --crypto:#6B3FA0; --skip:#8A6A00;
+    --measure:68ch;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#141A21; --surface:#1B232C; --ink:#E4E9E2; --muted:#A7B0BA; --rule:#2E3944;
+      --casa:#6FA8DC; --rabat:#6CC08F; --backbone:#E8C04A; --backbone-wire:#E8C04A; --crypto:#B497E0; --skip:#E8C04A;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#141A21; --surface:#1B232C; --ink:#E4E9E2; --muted:#A7B0BA; --rule:#2E3944;
+    --casa:#6FA8DC; --rabat:#6CC08F; --backbone:#E8C04A; --backbone-wire:#E8C04A; --crypto:#B497E0; --skip:#E8C04A;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.6 Archivo,"Segoe UI",Helvetica,Arial,sans-serif;font-stretch:100%}
+  a{color:var(--casa);text-underline-offset:3px}
+  a:focus-visible,button:focus-visible{outline:3px solid var(--crypto);outline-offset:3px;border-radius:2px}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  @media (max-width:600px){.wrap{padding:0 16px}}
+
+  header.top{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:22px 0;border-bottom:1px solid var(--rule)}
+  header.top .who{font-weight:700;font-stretch:110%}
+  header.top nav{display:flex;gap:20px;flex-wrap:wrap}
+  @media (max-width:600px){header.top{flex-direction:column;gap:6px}}
+  header.top nav a{color:var(--ink);text-decoration:none;font-weight:500}
+  header.top nav a:hover{color:var(--casa);text-decoration:underline}
+
+  .hero{padding:56px 0 24px}
+  h1{font-weight:800;font-stretch:125%;font-size:clamp(2.3rem,6.4vw,4.6rem);line-height:.98;letter-spacing:-.025em;margin:0;max-width:18ch}
+  .lede{font-size:1.2rem;color:var(--muted);max-width:var(--measure);margin:22px 0 0}
+  .diagram{margin:36px 0 8px;border:1px solid var(--rule);border-radius:16px;overflow:hidden;background:#EEF1EC}
+  .diagram img{display:block;width:100%;height:auto}
+  .scroll-hint{display:none;font-size:.9rem;color:var(--muted)}
+  @media (max-width:700px){
+    .diagram{overflow-x:auto}
+    .diagram img{width:900px;max-width:none}
+    .scroll-hint{display:block}
+  }
+
+  section{padding:56px 0;border-top:1px solid var(--rule)}
+  h2{font-weight:750;font-stretch:115%;font-size:clamp(1.55rem,3vw,2.1rem);line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+  .intro{color:var(--muted);max-width:var(--measure);margin:0 0 28px}
+
+  table{width:100%;border-collapse:collapse;font-size:.98rem}
+  th,td{text-align:left;vertical-align:top;padding:12px 14px 12px 0;border-bottom:1px solid var(--rule)}
+  th{font-weight:650;color:var(--muted);font-size:.9rem}
+  td:first-child{font-weight:650;white-space:nowrap}
+  td.tests{white-space:nowrap;color:var(--muted)}
+  @media (max-width:700px){
+    table.proves thead{display:none}
+    table.proves tr{display:block;padding:12px 0;border-bottom:1px solid var(--rule)}
+    table.proves td{display:block;border:0;padding:2px 0;white-space:normal}
+  }
+
+  .evidence{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
+  @media (max-width:900px){.evidence{grid-template-columns:1fr}}
+  .proof{border-left:5px solid var(--c);padding:2px 0 2px 18px}
+  .proof h3{margin:0 0 6px;font-size:1.08rem;font-weight:700;font-stretch:110%}
+  .proof pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  .proof p{margin:0 0 12px;color:var(--muted);font-size:.96rem}
+  pre{margin:0;background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:12px 14px;overflow-x:auto;
+      font:400 12.5px/1.55 "JetBrains Mono",ui-monospace,Consolas,monospace;color:var(--ink)}
+  pre mark{background:none;color:var(--c);font-weight:500}
+
+  .groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 48px}
+  @media (max-width:800px){.groups{grid-template-columns:1fr}}
+  .group h3{font-size:1rem;font-weight:700;margin:18px 0 4px;font-stretch:110%}
+  .group ol{list-style:none;margin:0;padding:0}
+  .group li{display:grid;grid-template-columns:2.6em 1.4em 1fr;gap:6px;padding:7px 0;border-bottom:1px solid var(--rule);font-size:.97rem}
+  .group .id{color:var(--muted);font-variant-numeric:tabular-nums}
+  .ok{color:var(--rabat);font-weight:700}
+  .sk{color:var(--skip);font-weight:700}
+  .group small{display:block;color:var(--muted);font-size:.88rem}
+  .tally{font-size:1.15rem;margin:0 0 6px}
+  .tally strong{font-stretch:115%}
+  .env{color:var(--muted);font-size:.93rem;max-width:var(--measure)}
+
+  .run pre{font-size:14px;max-width:760px}
+
+  .lessons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 48px;margin:0;padding:0;list-style:none}
+  @media (max-width:800px){.lessons{grid-template-columns:1fr}}
+  .lessons li{max-width:52ch}
+  .lessons b{display:block;font-weight:700;margin-bottom:2px}
+  .lessons span{color:var(--muted)}
+
+  footer{border-top:1px solid var(--rule);padding:32px 0 48px;color:var(--muted);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .theme{background:none;border:1px solid var(--rule);color:var(--ink);border-radius:999px;padding:6px 14px;font:inherit;font-size:.9rem;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="who">Mehdi Ammou</span>
+    <nav aria-label="Liens">
+      <a href="https://github.com/mehdi20011999/lab-reseau-securite">Code sur GitHub</a>
+      <a href="https://portfolio-mehdi-main.vercel.app">Portfolio</a>
+      <a href="https://www.linkedin.com/in/ammou-mehdi-483b6226b">LinkedIn</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="hero">
+      <h1>Deux sites, un tunnel chiffré, dix‑sept tests.</h1>
+      <p class="lede">Un réseau d'entreprise entre Casablanca et Rabat, monté par un seul script : routage OSPF avec lien de secours, firewalls qui filtrent et traduisent, VPN IPsec IKEv2. Chaque promesse du schéma est vérifiée par un test et prouvée par une capture.</p>
+      <figure class="diagram">
+        <img src="topologie.svg" width="1200" height="470" alt="Topologie : à gauche le site de Casablanca (poste, serveur, switch, firewall), au centre trois routeurs OSPF avec un lien de secours, à droite le site de Rabat. Un tunnel IPsec relie les deux firewalls ; un paquet le traverse, chiffré entre les firewalls.">
+      </figure>
+      <p class="scroll-hint">Faites défiler le schéma horizontalement.</p>
+    </div>
+
+    <section aria-labelledby="proves">
+      <h2 id="proves">Ce que le labo prouve</h2>
+      <p class="intro">Les compétences demandées dans les offres « ingénieur réseaux et sécurité », chacune reliée au test qui la vérifie.</p>
+      <table class="proves">
+        <thead><tr><th scope="col">Compétence</th><th scope="col">Mise en œuvre</th><th scope="col">Vérifié par</th></tr></thead>
+        <tbody>
+          <tr><td>Routage dynamique</td><td>OSPF aire 0 entre trois routeurs FRRouting, authentification MD5, lien de secours au coût 100</td><td class="tests">T01 à T04</td></tr>
+          <tr><td>Segmentation</td><td>VLAN 10 utilisateurs et VLAN 20 serveurs, trunk 802.1Q, routage inter-VLAN sur le firewall</td><td class="tests">T05, T09</td></tr>
+          <tr><td>Filtrage</td><td>nftables en liste blanche : tout ce qui n'est pas autorisé est refusé et compté</td><td class="tests">T06 à T08</td></tr>
+          <tr><td>NAT</td><td>Traduction des adresses privées vers Internet, exemption pour le trafic de site à site</td><td class="tests">T10</td></tr>
+          <tr><td>VPN</td><td>IPsec IKEv2, AES-256, SHA-256, groupe DH 14, clé régénérée à chaque démarrage</td><td class="tests">T11 à T15</td></tr>
+          <tr><td>Haute disponibilité</td><td>Bascule automatique sur panne franche et sur panne silencieuse du backbone</td><td class="tests">T16, T17</td></tr>
+          <tr><td>Automatisation</td><td>Déploiement en une commande, tests reproductibles, exécution à chaque modification par GitHub Actions</td><td class="tests">CI</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section aria-labelledby="evidence">
+      <h2 id="evidence">La preuve par la capture</h2>
+      <p class="intro">Extraits réels de <code>captures/</code>, enregistrés sur le lien entre R-CASA et R-ISP, là où passerait l'opérateur.</p>
+      <div class="evidence">
+        <div class="proof" style="--c:var(--backbone)">
+          <h3>Les routeurs signent leurs annonces</h3>
+          <p>Un équipement qui n'a pas la clé ne peut pas injecter de routes.</p>
+<pre>10.255.0.1 &gt; 224.0.0.5: OSPFv2, Hello
+  Router-ID 1.1.1.1, Backbone Area,
+  <mark>Authentication Type: MD5 (2)</mark>
+  Hello Timer 1s, Dead Timer 4s</pre>
+        </div>
+        <div class="proof" style="--c:var(--casa)">
+          <h3>Le poste sort avec l'adresse du firewall</h3>
+          <p>PC-A1 (10.10.10.10) joint 8.8.8.8 ; l'opérateur ne voit que l'adresse publique.</p>
+<pre><mark>198.51.100.2</mark> &gt; 8.8.8.8: ICMP echo request
+8.8.8.8 &gt; <mark>198.51.100.2</mark>: ICMP echo reply</pre>
+        </div>
+        <div class="proof" style="--c:var(--crypto)">
+          <h3>Entre les sites, tout est chiffré</h3>
+          <p>Pendant un ping de Casablanca vers Rabat : seulement de l'ESP, aucune adresse privée visible.</p>
+<pre>198.51.100.2.4500 &gt; 203.0.113.2.4500:
+  UDP-encap: <mark>ESP(spi=0x35fc1c6d,seq=0x1)</mark>
+203.0.113.2.4500 &gt; 198.51.100.2.4500:
+  UDP-encap: <mark>ESP(spi=0x52802d9f,seq=0x1)</mark></pre>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="results">
+      <h2 id="results">Résultats</h2>
+      <p class="tally"><strong>16 tests réussis</strong>, 0 échec, 1 non applicable sur cette machine.</p>
+      <p class="env">Exécution du 20 octobre 2026 sur un noyau sans 802.1Q ni ESP natif : le labo a basculé sur ses modes de repli (segments séparés, chiffrement par strongSwan en UDP 4500). Le test VLAN s'exécute dans GitHub Actions. Rapport complet : <a href="https://github.com/mehdi20011999/lab-reseau-securite/blob/main/results/RESULTS.md">results/RESULTS.md</a>.</p>
+      <div class="groups">
+        <div class="group">
+          <h3>Routage OSPF</h3>
+          <ol>
+            <li><span class="id">T01</span><span class="ok" aria-label="réussi">✓</span><span>Adjacences établies sur R-ISP<small>2 voisins en état Full</small></span></li>
+            <li><span class="id">T02</span><span class="ok" aria-label="réussi">✓</span><span>Rabat joint par le backbone<small>coût 30, lien de secours inutilisé</small></span></li>
+            <li><span class="id">T03</span><span class="ok" aria-label="réussi">✓</span><span>Authentification MD5 active</span></li>
+            <li><span class="id">T04</span><span class="ok" aria-label="réussi">✓</span><span>Réseaux privés absents du backbone</span></li>
+          </ol>
+          <h3>LAN et filtrage</h3>
+          <ol>
+            <li><span class="id">T05</span><span class="ok" aria-label="réussi">✓</span><span>Passerelle du VLAN utilisateurs</span></li>
+            <li><span class="id">T06</span><span class="ok" aria-label="réussi">✓</span><span>Utilisateurs vers serveurs : HTTPS autorisé</span></li>
+            <li><span class="id">T07</span><span class="ok" aria-label="réussi">✓</span><span>Port 8080 refusé<small>le service tourne, c'est bien le firewall qui bloque</small></span></li>
+            <li><span class="id">T08</span><span class="ok" aria-label="réussi">✓</span><span>Serveurs vers utilisateurs bloqué et compté</span></li>
+            <li><span class="id">T09</span><span class="sk" aria-label="non applicable">–</span><span>Étiquetage 802.1Q sur le trunk<small>exécuté par GitHub Actions</small></span></li>
+          </ol>
+        </div>
+        <div class="group">
+          <h3>NAT</h3>
+          <ol>
+            <li><span class="id">T10</span><span class="ok" aria-label="réussi">✓</span><span>Sortie vers Internet avec traduction d'adresse</span></li>
+          </ol>
+          <h3>VPN IPsec</h3>
+          <ol>
+            <li><span class="id">T11</span><span class="ok" aria-label="réussi">✓</span><span>Négociation IKEv2 capturée</span></li>
+            <li><span class="id">T12</span><span class="ok" aria-label="réussi">✓</span><span>Tunnel établi et SA installée</span></li>
+            <li><span class="id">T13</span><span class="ok" aria-label="réussi">✓</span><span>Trafic chiffré<small>10 paquets ESP, 0 en clair</small></span></li>
+            <li><span class="id">T14</span><span class="ok" aria-label="réussi">✓</span><span>Rabat vers serveur de Casablanca : HTTPS via le tunnel</span></li>
+            <li><span class="id">T15</span><span class="ok" aria-label="réussi">✓</span><span>Rabat vers serveur de Casablanca : SSH refusé</span></li>
+          </ol>
+          <h3>Résilience</h3>
+          <ol>
+            <li><span class="id">T16</span><span class="ok" aria-label="réussi">✓</span><span>Coupure du lien R-ISP vers R-RABAT<small>0 paquet perdu sur 150, bascule immédiate</small></span></li>
+            <li><span class="id">T17</span><span class="ok" aria-label="réussi">✓</span><span>Panne silencieuse<small>37 paquets perdus sur 150, environ 3,7 s pour un dead-interval de 4 s</small></span></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="run" aria-labelledby="run">
+      <h2 id="run">Le faire tourner</h2>
+      <p class="intro">Ubuntu, Debian ou WSL2 sous Windows. Le démarrage prend une quinzaine de secondes.</p>
+<pre>git clone https://github.com/mehdi20011999/lab-reseau-securite.git
+cd lab-reseau-securite
+sudo ./scripts/install.sh
+sudo ./lab.sh up
+sudo ./lab.sh test
+sudo ./lab.sh down</pre>
+    </section>
+
+    <section aria-labelledby="lessons">
+      <h2 id="lessons">Ce qui a cassé, et pourquoi</h2>
+      <p class="intro">Les pannes rencontrées pendant la mise au point, détaillées dans <a href="https://github.com/mehdi20011999/lab-reseau-securite/blob/main/docs/problemes-resolus.md">problemes-resolus.md</a>.</p>
+      <ul class="lessons">
+        <li><b>Tunnel établi, aucun trafic</b><span>IKE négociait, mais le noyau refusait les clés AES-GCM. Une SA IKE établie ne prouve pas que les données passent.</span></li>
+        <li><b>Pas d'ESP dans le noyau</b><span>Détection au démarrage et repli sur un chiffrement en espace utilisateur, avec des règles de pare-feu adaptées.</span></li>
+        <li><b>Plugin chargé mais ignoré</b><span>L'ordre de chargement des plugins strongSwan décide lequel gère le noyau.</span></li>
+        <li><b>strongSwan modifiait l'hôte</b><span>Il réécrivait le DNS de la machine : liste de plugins explicite, sur le principe du moindre privilège.</span></li>
+        <li><b>FRRouting refusait root</b><span>Démons lancés avec l'utilisateur dédié, comme en production.</span></li>
+        <li><b>Route de secours au démarrage</b><span>Adjacences complètes avant la fin du calcul SPF : le script attend désormais la bonne route.</span></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <span>Mehdi Ammou, Master Réseaux informatiques et systèmes embarqués, Université Moulay Ismaïl.</span>
+    <button class="theme" type="button" id="theme">Changer de thème</button>
+  </footer>
+</div>
+<script>
+  (function(){
+    var root=document.documentElement, btn=document.getElementById('theme');
+    try{ var t=localStorage.getItem('theme'); if(t) root.setAttribute('data-theme',t); }catch(e){}
+    btn.addEventListener('click',function(){
+      var cur=root.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+      var next=cur==='dark'?'light':'dark';
+      root.setAttribute('data-theme',next);
+      try{ localStorage.setItem('theme',next); }catch(e){}
+    });
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+{
+  "generated": "2026-10-20 10:39 +00",
+  "lan_mode": "flat",
+  "esp_mode": "userspace",
+  "results": [
+    {
+      "id": "T01",
+      "status": "PASS"
+    },
+    {
+      "id": "T02",
+      "status": "PASS"
+    },
+    {
+      "id": "T03",
+      "status": "PASS"
+    },
+    {
+      "id": "T04",
+      "status": "PASS"
+    },
+    {
+      "id": "T05",
+      "status": "PASS"
+    },
+    {
+      "id": "T06",
+      "status": "PASS"
+    },
+    {
+      "id": "T07",
+      "status": "PASS"
+    },
+    {
+      "id": "T08",
+      "status": "PASS"
+    },
+    {
+      "id": "T09",
+      "status": "SKIP"
+    },
+    {
+      "id": "T10",
+      "status": "PASS"
+    },
+    {
+      "id": "T11",
+      "status": "PASS"
+    },
+    {
+      "id": "T12",
+      "status": "PASS"
+    },
+    {
+      "id": "T13",
+      "status": "PASS"
+    },
+    {
+      "id": "T14",
+      "status": "PASS"
+    },
+    {
+      "id": "T15",
+      "status": "PASS"
+    },
+    {
+      "id": "T16",
+      "status": "PASS"
+    },
+    {
+      "id": "T17",
+      "status": "PASS"
+    }
+  ]
+}

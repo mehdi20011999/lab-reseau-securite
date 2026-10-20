@@ -1,0 +1,67 @@
+#!/usr/sbin/nft -f
+# FW-RABAT : filtrage inter-VLAN, accès Internet, VPN IPsec vers Casablanca.
+# Politique par défaut : tout ce qui n'est pas explicitement autorisé est refusé et compté.
+flush ruleset
+
+define LOCAL_NET  = 10.20.0.0/16
+define REMOTE_NET = 10.10.0.0/16
+define USERS      = 10.20.10.0/24
+define SERVERS    = 10.20.20.0/24
+define PEER       = 198.51.100.2
+
+table inet filter {
+  counter drop_servers_to_users {}
+  counter drop_forward {}
+  counter drop_input {}
+
+  chain input {
+    type filter hook input priority filter; policy drop;
+    iif "lo" accept
+    ct state established,related accept
+    ct state invalid drop
+    iifname "wan" ip saddr $PEER udp dport { 500, 4500 } accept   comment "IKE / NAT-T"
+    iifname "wan" ip saddr $PEER ip protocol esp accept             comment "ESP"
+    iifname { "lan10", "lan20" } icmp type echo-request accept      comment "ping de la passerelle"
+    counter name drop_input drop
+  }
+
+  chain forward {
+    type filter hook forward priority filter; policy drop;
+    ct state established,related accept
+    ct state invalid drop
+
+    # Utilisateurs -> serveurs du site : services web et SSH uniquement
+    iifname "lan10" oifname "lan20" tcp dport { 22, 80, 443 } accept
+    iifname "lan10" oifname "lan20" icmp type echo-request accept
+
+    # Utilisateurs -> site distant, uniquement à travers le tunnel IPsec
+    iifname "lan10" oifname "wan" ip daddr $REMOTE_NET rt ipsec exists icmp type echo-request accept
+    iifname "lan10" oifname "wan" ip daddr $REMOTE_NET rt ipsec exists tcp dport 443 accept
+
+    # Utilisateurs -> Internet (sortie NAT)
+    iifname "lan10" oifname "wan" ip daddr != 10.0.0.0/8 accept
+
+    # Serveurs -> Internet : DNS, HTTPS et ping seulement
+    iifname "lan20" oifname "wan" ip daddr != 10.0.0.0/8 udp dport 53 accept
+    iifname "lan20" oifname "wan" ip daddr != 10.0.0.0/8 tcp dport 443 accept
+    iifname "lan20" oifname "wan" ip daddr != 10.0.0.0/8 icmp type echo-request accept
+
+    # Site distant (déchiffré) -> serveurs du site : HTTPS et ping seulement
+    iifname "wan" meta ipsec exists ip saddr $REMOTE_NET ip daddr $SERVERS tcp dport 443 accept
+    iifname "wan" meta ipsec exists ip saddr $REMOTE_NET ip daddr $LOCAL_NET icmp type echo-request accept
+
+    # Un serveur n'initie jamais de connexion vers les postes utilisateurs
+    iifname "lan20" oifname "lan10" counter name drop_servers_to_users drop
+
+    counter name drop_forward drop
+  }
+}
+
+table ip nat {
+  chain postrouting {
+    type nat hook postrouting priority srcnat; policy accept;
+    # Pas de NAT pour le trafic de site à site : il part dans le tunnel avec ses adresses d'origine
+    oifname "wan" ip saddr $LOCAL_NET ip daddr $REMOTE_NET accept
+    oifname "wan" ip saddr $LOCAL_NET masquerade
+  }
+}

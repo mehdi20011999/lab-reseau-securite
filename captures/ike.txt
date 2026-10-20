@@ -1,0 +1,37 @@
+10:39:09.598096 IP (tos 0x0, ttl 63, id 18949, offset 0, flags [DF], proto UDP (17), length 492)
+    198.51.100.2.500 > 203.0.113.2.500: isakmp 2.0 msgid 00000000: parent_sa ikev2_init[I]:
+    (sa: len=44
+        (p: #1 protoid=isakmp transform=4 len=44
+            (t: #1 type=encr id=aes (type=keylen value=0100))
+            (t: #2 type=integ id=#12 )
+            (t: #3 type=prf id=#5 )
+            (t: #4 type=dh id=modp2048 )))
+    (v2ke: len=256 group=modp2048)
+    (nonce: len=32 data=(3f5c85ed547ec2899c8b...0000402f00020003000400050000000800004016))
+    (n: prot_id=#0 type=16388(nat_detection_source_ip))
+    (n: prot_id=#0 type=16389(nat_detection_destination_ip))
+    (n: prot_id=#0 type=16430(status))
+    (n: prot_id=#0 type=16431(status))
+    (n: prot_id=#0 type=16406(status))
+10:39:09.599575 IP (tos 0x0, ttl 62, id 27905, offset 0, flags [DF], proto UDP (17), length 500)
+    203.0.113.2.500 > 198.51.100.2.500: isakmp 2.0 msgid 00000000: parent_sa ikev2_init[R]:
+    (sa: len=44
+        (p: #1 protoid=isakmp transform=4 len=44
+            (t: #1 type=encr id=aes (type=keylen value=0100))
+            (t: #2 type=integ id=#12 )
+            (t: #3 type=prf id=#5 )
+            (t: #4 type=dh id=modp2048 )))
+    (v2ke: len=256 group=modp2048)
+    (nonce: len=32 data=(f911124a6e446a94b10a...0004000529000008000040220000000800004014))
+    (n: prot_id=#0 type=16388(nat_detection_source_ip))
+    (n: prot_id=#0 type=16389(nat_detection_destination_ip))
+    (n: prot_id=#0 type=16430(status))
+    (n: prot_id=#0 type=16431(status))
+    (n: prot_id=#0 type=16418(status))
+    (n: prot_id=#0 type=16404(status))
+10:39:09.605746 IP (tos 0x0, ttl 63, id 18950, offset 0, flags [DF], proto UDP (17), length 336)
+    198.51.100.2.4500 > 203.0.113.2.4500: NONESP-encap: isakmp 2.0 msgid 00000001: child_sa  ikev2_auth[I]:
+    (v2e: len=272)
+10:39:09.611526 IP (tos 0x0, ttl 62, id 27906, offset 0, flags [DF], proto UDP (17), length 288)
+    203.0.113.2.4500 > 198.51.100.2.4500: NONESP-encap: isakmp 2.0 msgid 00000001: child_sa  ikev2_auth[R]:
+    (v2e: len=224)

@@ -1,0 +1,6 @@
+10:39:06.098686 IP 198.51.100.2 > 8.8.8.8: ICMP echo request, id 588, seq 1, length 64
+10:39:06.098714 IP 8.8.8.8 > 198.51.100.2: ICMP echo reply, id 588, seq 1, length 64
+10:39:07.128950 IP 198.51.100.2 > 8.8.8.8: ICMP echo request, id 588, seq 2, length 64
+10:39:07.128967 IP 8.8.8.8 > 198.51.100.2: ICMP echo reply, id 588, seq 2, length 64
+10:39:08.152821 IP 198.51.100.2 > 8.8.8.8: ICMP echo request, id 588, seq 3, length 64
+10:39:08.152837 IP 8.8.8.8 > 198.51.100.2: ICMP echo reply, id 588, seq 3, length 64

@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 470" role="img" aria-labelledby="t d">
+  <title id="t">Topologie du labo : deux sites reliés par un tunnel IPsec</title>
+  <desc id="d">Casablanca et Rabat, chacun avec un poste, un serveur, un switch et un firewall. Trois routeurs OSPF forment le backbone, avec un lien de secours. Un paquet traverse le réseau : en clair dans le LAN, chiffré entre les deux firewalls.</desc>
+  <style>
+    .lbl{font:600 15px Archivo,"Segoe UI",Helvetica,Arial,sans-serif;fill:#1B2430}
+    .sub{font:400 12.5px Archivo,"Segoe UI",Helvetica,Arial,sans-serif;fill:#4A5563}
+    .site{font:700 13px Archivo,"Segoe UI",Helvetica,Arial,sans-serif;letter-spacing:.02em}
+    .wire{fill:none;stroke-width:3;stroke-linecap:round}
+    .node{fill:#FBFCFA;stroke:#1B2430;stroke-width:2}
+    @media (prefers-reduced-motion: reduce){ .packet{display:none} }
+  </style>
+
+  <rect width="1200" height="470" fill="#EEF1EC"/>
+
+  <!-- Zones des sites -->
+  <rect x="24" y="96" width="340" height="300" rx="14" fill="#1D5C96" fill-opacity=".07" stroke="#1D5C96" stroke-opacity=".35" stroke-dasharray="6 6"/>
+  <text x="44" y="124" class="site" fill="#1D5C96">Site Casablanca  10.10.0.0/16</text>
+  <rect x="836" y="96" width="340" height="300" rx="14" fill="#2E7D4F" fill-opacity=".07" stroke="#2E7D4F" stroke-opacity=".35" stroke-dasharray="6 6"/>
+  <text x="856" y="124" class="site" fill="#2E7D4F">Site Rabat  10.20.0.0/16</text>
+
+  <!-- Tunnel IPsec (logique) -->
+  <path d="M310,236 C420,6 780,6 890,236" class="wire" stroke="#6B3FA0" stroke-dasharray="2 9" stroke-width="4"/>
+  <rect x="482" y="38" width="236" height="30" rx="15" fill="#6B3FA0"/>
+  <text x="600" y="58" text-anchor="middle" style="font:600 13.5px Archivo,'Segoe UI',Helvetica,Arial,sans-serif;fill:#fff">Tunnel IPsec IKEv2, AES-256</text>
+
+  <!-- Câblage LAN -->
+  <path d="M112,170 L200,250 M112,330 L200,250 M200,250 L310,250" class="wire" stroke="#1D5C96"/>
+  <path d="M1088,170 L1000,250 M1088,330 L1000,250 M1000,250 L890,250" class="wire" stroke="#2E7D4F"/>
+  <!-- WAN + backbone -->
+  <path d="M310,250 L450,250 M750,250 L890,250" class="wire" stroke="#8A94A1"/>
+  <path d="M450,250 L600,140 L750,250" class="wire" stroke="#D9A400" stroke-width="4"/>
+  <path d="M450,250 Q600,410 750,250" class="wire" stroke="#D9A400" stroke-dasharray="10 8"/>
+  <text x="600" y="352" text-anchor="middle" class="sub">lien de secours, coût OSPF 100</text>
+
+  <!-- Hôtes -->
+  <g>
+    <rect x="62" y="150" width="50" height="36" rx="5" class="node"/><rect x="80" y="186" width="14" height="6" fill="#1B2430"/>
+    <text x="40" y="214" class="lbl">PC-A1</text><text x="40" y="231" class="sub">VLAN 10, .10.10</text>
+    <rect x="66" y="306" width="42" height="52" rx="5" class="node"/><path d="M74,320 h26 M74,332 h26 M74,344 h26" stroke="#1B2430" stroke-width="2"/>
+    <text x="40" y="378" class="lbl">SRV-A</text><text x="104" y="378" class="sub">VLAN 20</text>
+
+    <rect x="1088" y="150" width="50" height="36" rx="5" class="node"/><rect x="1106" y="186" width="14" height="6" fill="#1B2430"/>
+    <text x="1160" y="214" text-anchor="end" class="lbl">PC-B1</text><text x="1160" y="231" text-anchor="end" class="sub">VLAN 10, .10.10</text>
+    <rect x="1092" y="306" width="42" height="52" rx="5" class="node"/><path d="M1100,320 h26 M1100,332 h26 M1100,344 h26" stroke="#1B2430" stroke-width="2"/>
+    <text x="1160" y="378" text-anchor="end" class="lbl">SRV-B</text><text x="1096" y="378" text-anchor="end" class="sub">VLAN 20</text>
+  </g>
+
+  <!-- Switchs -->
+  <g>
+    <rect x="168" y="236" width="64" height="28" rx="4" class="node"/>
+    <text x="200" y="255" text-anchor="middle" class="sub" style="fill:#1D5C96;font-weight:600">802.1Q</text>
+    <rect x="968" y="236" width="64" height="28" rx="4" class="node"/>
+    <text x="1000" y="255" text-anchor="middle" class="sub" style="fill:#2E7D4F;font-weight:600">802.1Q</text>
+  </g>
+
+  <!-- Firewalls -->
+  <g>
+    <rect x="286" y="226" width="48" height="48" rx="6" class="node"/>
+    <path d="M286,242 h48 M286,258 h48 M302,226 v16 M318,242 v16 M302,258 v16" stroke="#1B2430" stroke-width="1.6"/>
+    <text x="310" y="296" text-anchor="middle" class="lbl">FW-CASA</text>
+    <text x="310" y="313" text-anchor="middle" class="sub">nftables, NAT</text>
+    <rect x="866" y="226" width="48" height="48" rx="6" class="node"/>
+    <path d="M866,242 h48 M866,258 h48 M882,226 v16 M898,242 v16 M882,258 v16" stroke="#1B2430" stroke-width="1.6"/>
+    <text x="890" y="296" text-anchor="middle" class="lbl">FW-RABAT</text>
+    <text x="890" y="313" text-anchor="middle" class="sub">nftables, NAT</text>
+  </g>
+
+  <!-- Routeurs -->
+  <g>
+    <circle cx="450" cy="250" r="25" class="node"/><path d="M438,250 h24 M450,238 v24" stroke="#1B2430" stroke-width="2"/>
+    <text x="450" y="296" text-anchor="middle" class="lbl">R-CASA</text>
+    <circle cx="600" cy="140" r="25" class="node"/><path d="M588,140 h24 M600,128 v24" stroke="#1B2430" stroke-width="2"/>
+    <text x="600" y="186" text-anchor="middle" class="lbl">R-ISP</text>
+    <text x="600" y="203" text-anchor="middle" class="sub">Internet simulé, 8.8.8.8</text>
+    <circle cx="750" cy="250" r="25" class="node"/><path d="M738,250 h24 M750,238 v24" stroke="#1B2430" stroke-width="2"/>
+    <text x="750" y="296" text-anchor="middle" class="lbl">R-RABAT</text>
+    <text x="600" y="240" text-anchor="middle" class="sub">OSPF aire 0, MD5</text>
+  </g>
+
+  <!-- Paquet : clair dans le LAN, chiffré entre les firewalls -->
+  <g class="packet">
+    <rect x="-9" y="-7" width="18" height="14" rx="3" stroke="#fff" stroke-width="2">
+      <animate attributeName="fill" dur="7s" repeatCount="indefinite" calcMode="discrete"
+               keyTimes="0;0.206;0.794" values="#1D5C96;#6B3FA0;#2E7D4F"/>
+      <animateMotion dur="7s" repeatCount="indefinite" calcMode="paced"
+               path="M112,170 L200,250 L310,250 L450,250 L600,140 L750,250 L890,250 L1000,250 L1088,170"/>
+    </rect>
+  </g>
+
+  <!-- Légende -->
+  <g transform="translate(40,432)">
+    <rect width="16" height="12" rx="3" fill="#1D5C96"/><text x="24" y="11" class="sub">paquet en clair (Casablanca)</text>
+    <rect x="232" width="16" height="12" rx="3" fill="#6B3FA0"/><text x="256" y="11" class="sub">chiffré en ESP entre les firewalls</text>
+    <rect x="500" width="16" height="12" rx="3" fill="#2E7D4F"/><text x="524" y="11" class="sub">déchiffré à Rabat</text>
+    <path d="M700,6 h30" stroke="#D9A400" stroke-width="4"/><text x="738" y="11" class="sub">backbone OSPF</text>
+    <path d="M870,6 h30" stroke="#6B3FA0" stroke-width="4" stroke-dasharray="2 7"/><text x="908" y="11" class="sub">tunnel (logique)</text>
+  </g>
+</svg>

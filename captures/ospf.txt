@@ -1,0 +1,71 @@
+10:38:56.076782 IP (tos 0xc0, ttl 1, id 17638, offset 0, flags [none], proto OSPF (89), length 84)
+    10.255.0.1 > 224.0.0.5: OSPFv2, Hello, length 48
+	Router-ID 1.1.1.1, Backbone Area, Authentication Type: MD5 (2)
+	Key-ID: 1, Auth-Length: 16, Crypto Sequence Number: 0x6ad744ce
+	Options [External]
+	  Hello Timer 1s, Dead Timer 4s, Mask 255.255.255.252, Priority 1
+	  Neighbor List:
+	    2.2.2.2
+10:38:56.076835 IP (tos 0xc0, ttl 1, id 17640, offset 0, flags [none], proto OSPF (89), length 80)
+    10.255.0.1 > 224.0.0.5: OSPFv2, LS-Ack, length 44
+	Router-ID 1.1.1.1, Backbone Area, Authentication Type: MD5 (2)
+	Key-ID: 1, Auth-Length: 16, Crypto Sequence Number: 0x6ad744cf
+	  Advertising Router 3.3.3.3, seq 0x80000006, age 7s, length 76
+	    Router LSA (1), LSA-ID: 3.3.3.3
+	    Options: [External] [|ospf2]
+10:38:56.149283 IP (tos 0xc0, ttl 1, id 17633, offset 0, flags [none], proto OSPF (89), length 84)
+    10.255.0.2 > 224.0.0.5: OSPFv2, Hello, length 48
+	Router-ID 2.2.2.2, Backbone Area, Authentication Type: MD5 (2)
+	Key-ID: 1, Auth-Length: 16, Crypto Sequence Number: 0x6ad744cb
+	Options [External]
+	  Hello Timer 1s, Dead Timer 4s, Mask 255.255.255.252, Priority 1
+	  Neighbor List:
+	    1.1.1.1
+10:38:57.076829 IP (tos 0xc0, ttl 1, id 17641, offset 0, flags [none], proto OSPF (89), length 84)
+    10.255.0.1 > 224.0.0.5: OSPFv2, Hello, length 48
+	Router-ID 1.1.1.1, Backbone Area, Authentication Type: MD5 (2)
+	Key-ID: 1, Auth-Length: 16, Crypto Sequence Number: 0x6ad744d0
+	Options [External]
+	  Hello Timer 1s, Dead Timer 4s, Mask 255.255.255.252, Priority 1
+	  Neighbor List:
+	    2.2.2.2
+10:38:57.149363 IP (tos 0xc0, ttl 1, id 17635, offset 0, flags [none], proto OSPF (89), length 84)
+    10.255.0.2 > 224.0.0.5: OSPFv2, Hello, length 48
+	Router-ID 2.2.2.2, Backbone Area, Authentication Type: MD5 (2)
+	Key-ID: 1, Auth-Length: 16, Crypto Sequence Number: 0x6ad744cc
+	Options [External]
+	  Hello Timer 1s, Dead Timer 4s, Mask 255.255.255.252, Priority 1
+	  Neighbor List:
+	    1.1.1.1
+10:38:58.077753 IP (tos 0xc0, ttl 1, id 17643, offset 0, flags [none], proto OSPF (89), length 84)
+    10.255.0.1 > 224.0.0.5: OSPFv2, Hello, length 48
+	Router-ID 1.1.1.1, Backbone Area, Authentication Type: MD5 (2)
+	Key-ID: 1, Auth-Length: 16, Crypto Sequence Number: 0x6ad744d1
+	Options [External]
+	  Hello Timer 1s, Dead Timer 4s, Mask 255.255.255.252, Priority 1
+	  Neighbor List:
+	    2.2.2.2
+10:38:58.149554 IP (tos 0xc0, ttl 1, id 17637, offset 0, flags [none], proto OSPF (89), length 84)
+    10.255.0.2 > 224.0.0.5: OSPFv2, Hello, length 48
+	Router-ID 2.2.2.2, Backbone Area, Authentication Type: MD5 (2)
+	Key-ID: 1, Auth-Length: 16, Crypto Sequence Number: 0x6ad744cd
+	Options [External]
+	  Hello Timer 1s, Dead Timer 4s, Mask 255.255.255.252, Priority 1
+	  Neighbor List:
+	    1.1.1.1
+10:38:59.077839 IP (tos 0xc0, ttl 1, id 17645, offset 0, flags [none], proto OSPF (89), length 84)
+    10.255.0.1 > 224.0.0.5: OSPFv2, Hello, length 48
+	Router-ID 1.1.1.1, Backbone Area, Authentication Type: MD5 (2)
+	Key-ID: 1, Auth-Length: 16, Crypto Sequence Number: 0x6ad744d2
+	Options [External]
+	  Hello Timer 1s, Dead Timer 4s, Mask 255.255.255.252, Priority 1
+	  Neighbor List:
+	    2.2.2.2
+10:38:59.149576 IP (tos 0xc0, ttl 1, id 17639, offset 0, flags [none], proto OSPF (89), length 84)
+    10.255.0.2 > 224.0.0.5: OSPFv2, Hello, length 48
+	Router-ID 2.2.2.2, Backbone Area, Authentication Type: MD5 (2)
+	Key-ID: 1, Auth-Length: 16, Crypto Sequence Number: 0x6ad744ce
+	Options [External]
+	  Hello Timer 1s, Dead Timer 4s, Mask 255.255.255.252, Priority 1
+	  Neighbor List:
+	    1.1.1.1
