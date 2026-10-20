@@ -16,24 +16,36 @@ jobs:
         run: sudo ./scripts/install.sh
 
       - name: Démarrer le labo (11 équipements)
-        run: sudo ./lab.sh up
+        run: sudo -E ./lab.sh up
 
       - name: Lancer les tests
-        run: sudo ./lab.sh test
+        run: sudo -E ./lab.sh test
 
       - name: Résultats dans le résumé du job
         if: always()
-        run: cat results/RESULTS.md >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          if [ -f results/RESULTS.md ]; then cat results/RESULTS.md >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - name: Journaux des équipements en cas d'échec
+        if: failure()
+        run: |
+          sudo bash -c 'for f in /tmp/netlab/*/*.out /tmp/netlab/*/*.log; do [ -f "$f" ] || continue; echo "=== $f"; tail -n 30 "$f"; done' || true
+
+      - name: Rendre les preuves lisibles pour l'archivage
+        if: always()
+        run: |
+          mkdir -p preuves
+          cp -r results captures preuves/ 2>/dev/null || true
+          sudo bash -c 'mkdir -p preuves/journaux; for d in /tmp/netlab/*/; do [ -d "$d" ] || continue; n=$(basename "$d"); for f in "$d"*.log "$d"*.out; do [ -f "$f" ] && cp "$f" "preuves/journaux/$n-$(basename "$f")"; done; done' || true
+          sudo chown -R "$(id -u):$(id -g)" preuves
 
       - name: Publier captures et résultats
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: preuves-labo
-          path: |
-            results/
-            captures/
-            /tmp/netlab/**/*.log
+          path: preuves/
+          if-no-files-found: warn
 
       - name: Arrêter le labo
         if: always()

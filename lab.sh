@@ -16,7 +16,16 @@ NODES=(r-casa r-isp r-rabat fw-casa fw-rabat pc-a srv-a pc-b srv-b sw-casa sw-ra
 
 c_ok=$'\e[32m'; c_ko=$'\e[31m'; c_dim=$'\e[2m'; c_b=$'\e[1m'; c_0=$'\e[0m'
 log()  { printf '%s==>%s %s\n' "$c_b" "$c_0" "$*"; }
-die()  { printf '%sErreur :%s %s\n' "$c_ko" "$c_0" "$*" >&2; exit 1; }
+die()  {
+  printf '%sErreur :%s %s\n' "$c_ko" "$c_0" "$*" >&2
+  # Dans GitHub Actions : l'erreur et la fin des journaux apparaissent dans le résumé du job.
+  if [[ -n ${GITHUB_ACTIONS:-} ]]; then
+    local ctx; ctx=$(tail -n 8 "$STATE"/*/charon.out "$STATE"/*/swanctl-load.log "$STATE"/*/ospfd.log 2>/dev/null | tail -c 3000 || true)
+    ctx=${ctx//'%'/'%25'}; ctx=${ctx//$'\n'/'%0A'}
+    echo "::error title=lab.sh::$*%0A$ctx"
+  fi
+  exit 1
+}
 nsx()  { local n=$1; shift; ip netns exec "$n" "$@"; }
 
 need_root() { [[ $EUID -eq 0 ]] || die "lance le labo avec sudo"; }
@@ -47,6 +56,22 @@ esp_kernel_supported() {
        enc 'cbc(aes)' "$k" auth-trunc 'hmac(sha256)' "$k" 128 2>/dev/null; then ok=0; fi
   ip netns del espprobe 2>/dev/null || true
   return $ok
+}
+
+# Ubuntu confine charon et swanctl avec AppArmor : leurs profils interdisent de lire une
+# configuration hors de /etc. On les retire le temps du labo, et on les recharge à l'arrêt.
+APPARMOR_PROFILES=(/etc/apparmor.d/usr.lib.ipsec.charon /etc/apparmor.d/usr.sbin.swanctl)
+apparmor_relax() {
+  command -v apparmor_parser >/dev/null 2>&1 && [[ -d /sys/kernel/security/apparmor ]] || return 0
+  for p in "${APPARMOR_PROFILES[@]}"; do
+    [[ -f $p ]] && apparmor_parser -R "$p" 2>/dev/null && log "${c_dim}AppArmor : profil $(basename "$p") retiré pendant le labo${c_0}"
+  done
+  return 0
+}
+apparmor_restore() {
+  command -v apparmor_parser >/dev/null 2>&1 && [[ -d /sys/kernel/security/apparmor ]] || return 0
+  for p in "${APPARMOR_PROFILES[@]}"; do [[ -f $p ]] && apparmor_parser -r "$p" 2>/dev/null; done
+  return 0
 }
 
 # veth entre deux namespaces : link <ns1> <if1> <ns2> <if2>
@@ -204,6 +229,7 @@ wait_ospf() {
 cmd_up() {
   need_root; need_tools
   [[ -d $STATE ]] && cmd_down >/dev/null 2>&1 || true
+  apparmor_relax
   mkdir -p "$STATE"
   build_topology
   log "Routage : FRRouting (OSPF aire 0, authentification MD5)"
@@ -234,6 +260,7 @@ cmd_down() {
     fi
   done
   rm -rf "$STATE"
+  apparmor_restore
   log "Labo arrêté"
 }
 
